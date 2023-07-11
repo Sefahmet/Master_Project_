@@ -33,7 +33,11 @@ public class ShortestPathService {
 
             Node startPoint = vertex.get(0);
             Node endPoint = vertex.get(1);
-            logger.info("Start point is " + startPoint.getOsmid() + " and end point is " + endPoint.getOsmid());
+            logger.info("Start point is " +start.getX() + " "+start.getY()  +
+                    " and assign to point is " + startPoint.getEast()+" " + startPoint.getNorth());
+            logger.info("End point is " + end.getX() + " "+end.getY()  +
+                    " and assign to point is " + endPoint.getEast()+" " + endPoint.getNorth());
+
 
 
             data.setWeight(weight);
