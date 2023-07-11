@@ -1,5 +1,8 @@
 package com.example.master_project_.WeightDecider;
 
+import org.apache.tomcat.util.bcel.Const;
+import scala.collection.immutable.Stream;
+
 public class Decider {
     public static Double maxSpeedDecider(Double maxSpeed){
         if (maxSpeed<30){
@@ -44,7 +47,7 @@ public class Decider {
                 turningCost = Constant + leftCost / 2;
                 break;
             default:
-                turningCost = 0.0;
+                turningCost = Constant;
                 break;
         }
 

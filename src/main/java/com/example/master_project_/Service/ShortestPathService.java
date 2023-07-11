@@ -24,13 +24,16 @@ import static com.example.master_project_.WeightDecider.Calculator.*;
 
 @Service
 public class ShortestPathService {
+    Logger logger = LoggerFactory.getLogger(ShortestPathService.class);
     public GraphPath<Node, Edge> getBestPath(Coordinate start, Coordinate end, Weight weight) throws IOException {
 
         try{
             MyDataSingleton data = new MyDataSingleton();
             List<Node> vertex = getClosestNode(start, end);
+
             Node startPoint = vertex.get(0);
             Node endPoint = vertex.get(1);
+            logger.info("Start point is " + startPoint.getOsmid() + " and end point is " + endPoint.getOsmid());
 
 
             data.setWeight(weight);
@@ -95,7 +98,7 @@ public class ShortestPathService {
 
         Tuple2<Object, Object> EN2LatLon = toWgs84.apply(x,y);
 
-        return new Coordinate((double)EN2LatLon._1(),(double)EN2LatLon._2());
+        return new Coordinate((double)EN2LatLon._2(),(double)EN2LatLon._1());
 
 
     }

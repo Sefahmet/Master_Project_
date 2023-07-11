@@ -19,7 +19,9 @@ public class WeightUpdate {
         ;
         while(iterator.hasNext()){
             Edge edge = iterator.next();
-            graph.setEdgeWeight(edge.getU(),edge.getV(), Calculator.weightCalculator(edge,data.getWeight()));
+            double weight = graph.getEdgeWeight(edge);
+            double weightnew = Calculator.weightCalculator(edge,data.getWeight());
+            graph.setEdgeWeight(edge.getU(),edge.getV(),weightnew);
 
         }
         logger.info("Graph Weight is updated");

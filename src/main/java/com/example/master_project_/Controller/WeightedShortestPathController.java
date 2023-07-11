@@ -46,17 +46,44 @@ public class WeightedShortestPathController {
         if (edgeList.size()>0) {
             for (Edge e : edgeList) {
                 if(!e.is_it_created()) {
-                    Coordinate p = shortestPathService.LatLon2EN(e.getStart_point().getX(), e.getStart_point().getY());
+                    Coordinate p = shortestPathService.EN2LatLon(e.getStart_point().getX(), e.getStart_point().getY());
+                    coordinateList.add(p);
+                    p = shortestPathService.EN2LatLon(e.getStart_point().getX(), e.getEnd_point().getY());
                     coordinateList.add(p);
                 }
             }
-            Edge e = edgeList.get(edgeList.size() - 1);
-            if (!e.is_it_created()){
-                Coordinate p = shortestPathService.EN2LatLon(e.getEnd_point().getX(),e.getEnd_point().getY());
-                coordinateList.add(p);
-            }
 
             return new ResponseEntity(coordinateList, HttpStatus.OK);
+        }else{
+            return new ResponseEntity(null,HttpStatus.BAD_REQUEST);
+        }
+    }
+    @GetMapping("/getOsmids")
+    public ResponseEntity<List<Node[]>> shortestPathOsmidsGetter(@Valid @RequestParam double lat1,
+                                                               @Valid @RequestParam double lon1,
+                                                               @Valid @RequestParam double lat2,
+                                                               @Valid @RequestParam double lon2,
+                                                               @Valid @RequestParam double w1,
+                                                               @Valid @RequestParam double w2,
+                                                               @Valid @RequestParam double w3,
+                                                               @Valid @RequestParam double w4) throws IOException {
+        Weight weight = new Weight(w1,w2,w3,w4);
+        Coordinate p1 = shortestPathService.LatLon2EN(lon1, lat1);
+        Coordinate p2 = shortestPathService.LatLon2EN(lon2, lat2);
+
+        GraphPath<Node, Edge> shortestpath = shortestPathService.getBestPath(p1, p2, weight);
+        List<Coordinate> coordinateList = new ArrayList<>();
+        List<Edge> edgeList = shortestpath.getEdgeList();
+        List<Node[]> osmids = new ArrayList<>();
+        if (edgeList.size()>0) {
+            for (Edge e : edgeList) {
+                if(!e.is_it_created()) {
+                    Node [] nodes = {e.getU(),e.getV()};
+                    osmids.add(nodes);
+                }
+            }
+
+            return new ResponseEntity(osmids, HttpStatus.OK);
         }else{
             return new ResponseEntity(null,HttpStatus.BAD_REQUEST);
         }
@@ -78,7 +105,7 @@ public class WeightedShortestPathController {
         if (edgeList.size()>0) {
             for (Edge e : edgeList) {
                 if(!e.is_it_created()) {
-                    Coordinate p = shortestPathService.LatLon2EN(e.getStart_point().getX(), e.getStart_point().getY());
+                    Coordinate p = shortestPathService.EN2LatLon(e.getStart_point().getX(), e.getStart_point().getY());
                     coordinateList.add(p);
                 }
             }

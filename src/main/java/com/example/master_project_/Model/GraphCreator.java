@@ -105,7 +105,12 @@ public class GraphCreator {
             }
             Node u = nodeHashMap.get(u_id);
             Node v = nodeHashMap.get(v_id);
-            Edge edge = new Edge(false,u_id,v_id,length,Math.pow((v_elev-u_elev)/length,2),maxspeed_weight,0.0,p1,p2,u,v);
+            double deltaH = v_elev - u_elev;
+            double sign = Math.signum(deltaH);
+            double slope = Math.pow(deltaH / length, 2);
+            System.out.println(sign);
+
+            Edge edge = new Edge(false,u_id,v_id,length,sign * Math.pow(slope,2),maxspeed_weight,0.0,p1,p2,u,v);
             graph.addEdge(u, v,edge);
             graph.setEdgeWeight(u,v, Calculator.defaultWeightCalculator(edge));
 
