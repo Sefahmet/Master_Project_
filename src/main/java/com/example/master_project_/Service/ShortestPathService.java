@@ -27,34 +27,37 @@ public class ShortestPathService {
     Logger logger = LoggerFactory.getLogger(ShortestPathService.class);
     public GraphPath<Node, Edge> getBestPath(Coordinate start, Coordinate end, Weight weight) throws IOException {
 
-        try{
+        GraphPath<Node, Edge> res = null;
+        try {
             MyDataSingleton data = new MyDataSingleton();
+
             List<Node> vertex = getClosestNode(start, end);
 
             Node startPoint = vertex.get(0);
             Node endPoint = vertex.get(1);
-            logger.info("Start point is " +start.getX() + " "+start.getY()  +
-                    " and assign to point is " + startPoint.getEast()+" " + startPoint.getNorth());
-            logger.info("End point is " + end.getX() + " "+end.getY()  +
-                    " and assign to point is " + endPoint.getEast()+" " + endPoint.getNorth());
-
+            logger.info("Start point is " + start.getX() + " " + start.getY() +
+                    " and assign to point is " + startPoint.getLat() + " " + startPoint.getLon());
+            logger.info("End point is " + end.getX() + " " + end.getY() +
+                    " and assign to point is " + endPoint.getLat() + " " + endPoint.getLon());
 
 
             data.setWeight(weight);
+            System.out.println(data.getWeight());
             data = WeightUpdate.graphUpdater(data);
-            return calculateShortestPath(startPoint,endPoint,data);
+            res = calculateShortestPath(startPoint, endPoint, data);
+            return res;
 
 
-
-
-        }catch (Exception e) {
+        } catch (Exception e) {
+            logger.error("Error in shortest path service");
+            if (res == null) {
+                logger.error("res is null");
+            }
             throw new IOException();
         }
     }public GraphPath<Node, Edge> getBestPath(String start_id, String end_id, Weight weight) throws IOException {
 
         try{
-
-
             MyDataSingleton data = new MyDataSingleton();
             Node startPoint = getNodeWithId(start_id,data);
             Node endPoint = getNodeWithId(end_id,data);
@@ -63,9 +66,6 @@ public class ShortestPathService {
             data = WeightUpdate.graphUpdater(data);
             return calculateShortestPath(startPoint,endPoint,data);
 
-
-
-
         }catch (Exception e) {
             throw new IOException();
         }
@@ -73,14 +73,20 @@ public class ShortestPathService {
     public GraphPath<Node, Edge> calculateShortestPath(Node start, Node end, MyDataSingleton data) throws IOException {
         Logger logger = LoggerFactory.getLogger(GraphCreator.class);
 
-        // Calculate Shortest Path
-        Graph<Node, Edge> graph = data.getGraphFeatures().getGraph();
-        DijkstraShortestPath<Node, Edge> shortestPathAlg = new DijkstraShortestPath<>(graph);
-        logger.info("Shortest path algorithm set as DijkstraShortestPath");
-        GraphPath<Node, Edge> shortestPath = shortestPathAlg.getPath(start, end);
+        try{// Calculate Shortest Path
+            Graph<Node, Edge> graph = data.getGraphFeatures().getGraph();
+            DijkstraShortestPath<Node, Edge> shortestPathAlg = new DijkstraShortestPath<>(graph);
+            logger.info("Shortest path algorithm set as DijkstraShortestPath");
+            GraphPath<Node, Edge> shortestPath = shortestPathAlg.getPath(start, end);
 
-        logger.info("Shortest path calculated from " + start.getOsmid() + " to " + end.getOsmid() + ": " + shortestPath.toString());
-        return shortestPath;
+            logger.info("Shortest path calculated from " + start.getOsmid() + " to " + end.getOsmid() + ": " + shortestPath.toString()+"\n"
+                    + shortestPath.getWeight()  );
+            return shortestPath;
+        }catch (Exception e){
+            logger.error("Error in calculating shortest path");
+            logger.error(e.getMessage());
+            throw new IOException();
+        }
     }
     public static Coordinate LatLon2EN (double lat,double lon){
 

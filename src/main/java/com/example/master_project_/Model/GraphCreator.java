@@ -56,6 +56,7 @@ public class GraphCreator {
             graph.addVertex(node);
         }
         nodeiterator.close();
+        fileDataStore.dispose();
         graphFeatures.setGraph(graph);
         graphFeatures.setNodeHashMap(nodeHashMap);
         return graph;
@@ -63,63 +64,88 @@ public class GraphCreator {
     public static Graph<Node, Edge> readAndAddOrgEdges2Graph(String filename, GraphFeatures graphFeatures) throws IOException {
         Graph<Node, Edge> graph = graphFeatures.getGraph();
         HashMap<String, Node> nodeHashMap = graphFeatures.getNodeHashMap();
-        File file = new File(filename);
-        FileDataStore fileDataStore = FileDataStoreFinder.getDataStore(file);
-        SimpleFeatureCollection  features = fileDataStore.getFeatureSource().getFeatures();
-        SimpleFeatureIterator edgeiterator =  features.features();
-        Double maxspeed_weight;
-        Coordinate p1;
-        Coordinate p2;
-        while (edgeiterator.hasNext()){
+        SimpleFeatureCollection features = null;
+        FileDataStore fileDataStore = null;
+        try {
+            File file = new File(filename);
+            fileDataStore = FileDataStoreFinder.getDataStore(file);
+            features = fileDataStore.getFeatureSource().getFeatures();
+            SimpleFeatureIterator edgeiterator = features.features();
 
-            SimpleFeature edgeFeature = edgeiterator.next();
-            String u_id = String.valueOf(edgeFeature.getAttribute("u"));
-            String v_id = String.valueOf(edgeFeature.getAttribute("v"));
-            String from = String.valueOf(edgeFeature.getAttribute("from"));
-            String to =   String.valueOf(edgeFeature.getAttribute("to"));
-            String maxSpeed = String.valueOf(edgeFeature.getAttribute("maxspeed"));
-            Double length = (Double) edgeFeature.getAttribute("length");
-            Double v_elev = (Double) edgeFeature.getAttribute("v_elev");
-            Double u_elev = (Double) edgeFeature.getAttribute("u_elev");
-            MultiLineString line = (MultiLineString) edgeFeature.getDefaultGeometry();
-            Iterator<Coordinate> s = Arrays.stream(line.getCoordinates()).iterator();
-            if( u_id.substring(0,u_id.length()-2).equals(from)){
-                p1 = s.next();
-                p2 = s.next();
 
-            }else{
-                p2 = s.next();
-                p1 = s.next();
-                Double subelev = v_elev;
-                v_elev = u_elev;
-                u_elev = subelev;
-            }
-            if(maxSpeed.isEmpty()){
-                maxspeed_weight = 1.0;
-            }else{
-                try {
-                    maxspeed_weight = Decider.maxSpeedDecider(Double.valueOf(maxSpeed));
-                }catch (Exception e){
-                    maxspeed_weight = 1.0;
+            Double maxspeed_weight;
+            Coordinate p1;
+            Coordinate p2;
+            while (edgeiterator.hasNext()) {
+
+                SimpleFeature edgeFeature = edgeiterator.next();
+                String highway = String.valueOf(edgeFeature.getAttribute("highway"));
+                if (highway.equals("living_street")) {
+                    continue;
                 }
+                String u_id = String.valueOf(edgeFeature.getAttribute("u"));
+                String v_id = String.valueOf(edgeFeature.getAttribute("v"));
+                String from = String.valueOf(edgeFeature.getAttribute("from"));
+                String to = String.valueOf(edgeFeature.getAttribute("to"));
+                String maxSpeed = String.valueOf(edgeFeature.getAttribute("maxspeed"));
+                Double length = (Double) edgeFeature.getAttribute("length");
+                Double v_elev = (Double) edgeFeature.getAttribute("v_elev");
+                Double u_elev = (Double) edgeFeature.getAttribute("u_elev");
+                MultiLineString line = (MultiLineString) edgeFeature.getDefaultGeometry();
+                Iterator<Coordinate> s = Arrays.stream(line.getCoordinates()).iterator();
+                if (u_id.substring(0, u_id.length() - 2).equals(from)) {
+                    p1 = s.next();
+                    p2 = s.next();
+
+                } else {
+                    p2 = s.next();
+                    p1 = s.next();
+                    Double subelev = v_elev;
+                    v_elev = u_elev;
+                    u_elev = subelev;
+                }
+
+                if (maxSpeed.isEmpty()) {
+                    maxspeed_weight = Decider.maxSpeedDecider(Double.valueOf(Decider.nullMaxSpeedDecider(highway)));
+                } else {
+                    try {
+                        maxspeed_weight = Decider.maxSpeedDecider(Double.valueOf(maxSpeed));
+                    } catch (Exception e) {
+                        maxspeed_weight = 0.1;
+                    }
+                }
+
+                Node u = nodeHashMap.get(u_id);
+                Node v = nodeHashMap.get(v_id);
+                double deltaH = v_elev - u_elev;
+                double sign = Math.signum(deltaH);
+                double slope = Math.pow(deltaH / length, 2);
+                double slope_weight = (100 + sign * slope)/100;
+
+                Edge edge = new Edge(false, u_id, v_id, length, slope_weight, maxspeed_weight, 0.0, p1, p2, u, v);
+
+                graph.addEdge(u, v, edge);
+                graph.setEdgeWeight(u, v, Calculator.defaultWeightCalculator(edge));
+                deltaH = u_elev - v_elev;
+                sign = Math.signum(deltaH);
+                slope = Math.pow(deltaH / length, 2);
+                slope_weight = (100 + sign * slope)/100;
+                Edge reverseedge = new Edge(false, v_id, u_id, length,slope_weight , maxspeed_weight, 0.0, p2, p1, v, u);
+                graph.addEdge(v, u, reverseedge);
+                graph.setEdgeWeight(v, u, Calculator.defaultWeightCalculator(reverseedge));
             }
-            Node u = nodeHashMap.get(u_id);
-            Node v = nodeHashMap.get(v_id);
-            double deltaH = v_elev - u_elev;
-            double sign = Math.signum(deltaH);
-            double slope = Math.pow(deltaH / length, 2);
-            System.out.println(sign);
+            graphFeatures.setGraph(graph);
+            edgeiterator.close();
+            fileDataStore.dispose();
+            return graph;
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (fileDataStore != null) {
+                fileDataStore.dispose();
+            }
 
-            Edge edge = new Edge(false,u_id,v_id,length,sign * Math.pow(slope,2),maxspeed_weight,0.0,p1,p2,u,v);
-            graph.addEdge(u, v,edge);
-            graph.setEdgeWeight(u,v, Calculator.defaultWeightCalculator(edge));
-
-            Edge reverseedge = new Edge(false,v_id,u_id,length,Math.pow((u_elev-v_elev)/length,2),maxspeed_weight,0.0,p2,p1,v,u);
-            graph.addEdge(v, u,reverseedge);
-            graph.setEdgeWeight(v,u, Calculator.defaultWeightCalculator(reverseedge));
         }
-        graphFeatures.setGraph(graph);
-        edgeiterator.close();
         return graph;
     }
     public static Graph<Node, Edge> readAndADdCreatedEdges2Graph(String filename, GraphFeatures graphFeatures) throws FileNotFoundException {
@@ -149,33 +175,17 @@ public class GraphCreator {
 
                 graph.setEdgeWeight(u,v,Calculator.defaultWeightCalculator(edge));
             }
-
+            br.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         return graph;
 
     }
 
-    private static List<Coordinate> reverseList(List<Coordinate> coords){
-        Iterator iterator = coords.iterator();
-        List<Coordinate> reverseCoords = new ArrayList<>();
-        for(int i = coords.toArray().length-1;i>=0;i--){
-            reverseCoords.add(coords.get(i));
-        }
-        return reverseCoords;
-    }
-    private static List<Coordinate> getCoordinateList(MultiLineString multiLineString) {
-        List<Coordinate> coordinateList = new ArrayList<>();
 
-        for (int i = 0; i < multiLineString.getNumGeometries(); i++) {
-            LineString lineString = (LineString) multiLineString.getGeometryN(i);
-            Coordinate[] coordinates = lineString.getCoordinates();
-            coordinateList.addAll(Arrays.asList(coordinates));
-        }
 
-        return coordinateList;
-    }
     public static GraphFeatures getGraphFeatrues() throws IOException {
         GraphFeatures graphFeatures = new GraphFeatures();
         Graph<Node, Edge> graph = new DefaultDirectedWeightedGraph(DefaultWeightedEdge.class);

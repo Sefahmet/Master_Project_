@@ -22,6 +22,9 @@ public class Calculator {
         Double w3 = weight.getSlope_weight();
         Double w4 = weight.getTurning_cost_weight();
         Double sumWeight = w1+w2+w3+w4;
+        if (sumWeight.equals(0.0)){
+            return defaultWeightCalculator(edge);
+        }
         Double norm_w1 = w1 / sumWeight;
         Double norm_w2 = w2 / sumWeight;
         Double norm_w3 = w3 / sumWeight;
@@ -43,29 +46,56 @@ public class Calculator {
         return normal_edge_weight+ created_edge_weight;
     }
     public static List<Node> getClosestNode(Coordinate startPoint, Coordinate endPoint) throws IOException {
+        Logger logger = LoggerFactory.getLogger(Calculator.class);
         Double startNodeDistance = Double.POSITIVE_INFINITY;
         Double endNodeDistance = Double.POSITIVE_INFINITY;
         Node startNode = new Node();
         Node endNode = new Node();
         MyDataSingleton data = new MyDataSingleton();
+        /*Iterator<Node> nodeIter = data.getGraphFeatures().getGraph().vertexSet().iterator();
+        while (nodeIter.hasNext()){
+            Node node = nodeIter.next();
+
+            Double sd = Math.hypot(node.getLat()- startPoint.getX(), node.getLon() - startPoint.getY());
+            Double ed = Math.hypot(node.getLat()- endPoint.getX(), node.getLon() - endPoint.getY());
+            if (sd < startNodeDistance){
+                startNodeDistance = sd;
+                startNode = node;
+            }
+            if (ed < endNodeDistance){
+                endNodeDistance = ed;
+                endNode = node;
+            }
+        }
+        logger.info("Closest Nodes Found: Start Node ->" + startNode.getOsmid() +" End Node -> " + endNode.getOsmid());
+        List<Node> res = new ArrayList<>();
+        res.add(startNode);
+        res.add(endNode);
+        return res;*/
         Iterator<Edge> edgeIterator = data.getGraphFeatures().getGraph().edgeSet().iterator();
 
-        Logger logger = LoggerFactory.getLogger(Calculator.class);
+
 
         while (edgeIterator.hasNext()) {
             Edge testEdge = edgeIterator.next();
+            if (testEdge.is_it_created()) {
+                continue;
+            }
             Node p1 = testEdge.getU();
             Node p2 = testEdge.getV();
-
-            Double sd = distanceEdge2Point(p2.getEast(), p2.getNorth(), p1.getEast(), p1.getNorth(),
+            Double lat1 = p1.getLat();
+            Double lon1 = p1.getLon();
+            Double lat2 = p2.getLat();
+            Double lon2 = p2.getLon();
+            Double sd = distanceEdge2Point(lat1, lon1, lat2,lon2,
                     startPoint.getX(), startPoint.getY());
-            Double ed = distanceEdge2Point(p2.getEast(), p2.getNorth(), p1.getEast(), p1.getNorth(),
+            Double ed = distanceEdge2Point(lat1, lon1, lat2,lon2,
                     endPoint.getX(), endPoint.getY());
 
             if (sd < startNodeDistance) {
                 startNodeDistance = sd;
-                if (Math.hypot(p1.getEast() - startPoint.getX(), p1.getNorth() - startPoint.getY()) <
-                        Math.hypot(p2.getEast() - startPoint.getX(), p2.getNorth() - startPoint.getY())) {
+                if (Math.hypot(lat1- startPoint.getX(), lon1 - startPoint.getY()) <
+                        Math.hypot(lat2 - startPoint.getX(),lon2 - startPoint.getY())) {
                     startNode = p1;
                 } else {
                     startNode = p2;
@@ -74,8 +104,8 @@ public class Calculator {
 
             if (ed < endNodeDistance) {
                 endNodeDistance = ed;
-                if (Math.hypot(p1.getEast() - endPoint.getX(), p1.getNorth() - endPoint.getY()) <
-                        Math.hypot(p2.getEast() - endPoint.getX(), p2.getNorth() - endPoint.getY())) {
+                if (Math.hypot(lat1- endPoint.getX(), lon1 - endPoint.getY()) <
+                        Math.hypot(lat2 - endPoint.getX(),lon2 - endPoint.getY())) {
                     endNode = p1;
                 } else {
                     endNode = p2;

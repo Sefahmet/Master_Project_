@@ -68,8 +68,8 @@ public class WeightedShortestPathController {
                                                                @Valid @RequestParam double w3,
                                                                @Valid @RequestParam double w4) throws IOException {
         Weight weight = new Weight(w1,w2,w3,w4);
-        Coordinate p1 = shortestPathService.LatLon2EN(lon1, lat1);
-        Coordinate p2 = shortestPathService.LatLon2EN(lon2, lat2);
+        Coordinate p1 = new Coordinate(lat1,lon1);
+        Coordinate p2 = new Coordinate(lat2,lon2);
 
         GraphPath<Node, Edge> shortestpath = shortestPathService.getBestPath(p1, p2, weight);
         List<Coordinate> coordinateList = new ArrayList<>();
@@ -98,8 +98,8 @@ public class WeightedShortestPathController {
                                                                  @Valid @RequestParam double w3,
                                                                  @Valid @RequestParam double w4) throws IOException {
         Weight weight = new Weight(w1,w2,w3,w4);
-        Coordinate p1 = shortestPathService.LatLon2EN(lon1, lat1);
-        Coordinate p2 = shortestPathService.LatLon2EN(lon2, lat2);
+        Coordinate p1 = new Coordinate(lat1,lon1);
+        Coordinate p2 = new Coordinate(lat2,lon2);
 
         GraphPath<Node, Edge> shortestpath = shortestPathService.getBestPath(p1, p2, weight);
         List<Coordinate> coordinateList = new ArrayList<>();
