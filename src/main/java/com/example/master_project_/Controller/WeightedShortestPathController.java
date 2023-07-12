@@ -5,6 +5,7 @@ import com.example.master_project_.Entity.Edge;
 import com.example.master_project_.Entity.Node;
 import com.example.master_project_.Entity.Weight;
 import com.example.master_project_.Service.ShortestPathService;
+import com.example.master_project_.WeightDecider.Calculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jgrapht.GraphPath;
@@ -121,7 +122,19 @@ public class WeightedShortestPathController {
             return new ResponseEntity(null,HttpStatus.BAD_REQUEST);
         }
     }
+    @GetMapping("/getWeight")
+    public ResponseEntity<Double> getWeight(@Valid @RequestParam double length,
+                                            @Valid @RequestParam double maxspeed,
+                                            @Valid @RequestParam double slope,
+                                            @Valid @RequestParam double distance_weight,
+                                            @Valid @RequestParam double slope_weight,
+                                            @Valid @RequestParam double max_speed_weight,
+                                            @Valid @RequestParam double turn_weight) throws IOException {
+        Weight weight = new Weight(distance_weight,slope_weight,max_speed_weight,turn_weight);
+        double w = Calculator.weightCalculator(length, maxspeed, slope/100, weight);
+        return new ResponseEntity(w,HttpStatus.OK);
 
+    }
     @GetMapping("/getWithOsmids")
     public ResponseEntity<List<Coordinate>> shortestPathGetter(@Valid @RequestParam String osmid1,
                                                                @Valid @RequestParam String osmid2,

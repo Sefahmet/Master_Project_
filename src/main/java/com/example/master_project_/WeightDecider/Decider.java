@@ -75,17 +75,19 @@ public class Decider {
 
         double a = 8.11260291157632;
         double b = 24.28555137728186;
+
         double slope_per = slope *100;
         double maxValue = a * 15 + b;
 
+
         if (slope_per<-b/a){
-            return 0.8;
+            return 0.0;
         }
         else if (slope_per<15) {
-            return  0.8 + (a * slope + b) / (2.5 * maxValue);
+            return (a * slope_per + b) / (maxValue);
         }
         else{
-            return 1.2;
+            return 1.0;
         }
     }
 }

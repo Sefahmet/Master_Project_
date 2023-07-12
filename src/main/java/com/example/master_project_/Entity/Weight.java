@@ -6,7 +6,6 @@ import lombok.Setter;
 
 import java.io.IOException;
 
-@AllArgsConstructor
 public class Weight {
 
 
@@ -20,6 +19,13 @@ public class Weight {
             instance = new Weight(0.25,0.25,0.25,0.25);
         }
         return instance;
+    }
+
+    public Weight(Double length_weight, Double slope_weight, Double max_speed_weight_weight, Double turning_cost_weight) {
+        this.length_weight = length_weight;
+        this.slope_weight = slope_weight;
+        this.max_speed_weight_weight = max_speed_weight_weight;
+        this.turning_cost_weight = turning_cost_weight;
     }
 
 }

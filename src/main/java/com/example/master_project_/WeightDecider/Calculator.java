@@ -18,8 +18,8 @@ public class Calculator {
     public static  double weightCalculator(Edge edge, Weight weight){
 
         Double w1 = weight.getLength_weight();
-        Double w2 = weight.getMax_speed_weight_weight();
-        Double w3 = weight.getSlope_weight();
+        Double w2 = weight.getSlope_weight();
+        Double w3 = weight.getMax_speed_weight_weight();
         Double w4 = weight.getTurning_cost_weight();
         Double sumWeight = w1+w2+w3+w4;
         if (sumWeight.equals(0.0)){
@@ -29,10 +29,34 @@ public class Calculator {
         Double norm_w2 = w2 / sumWeight;
         Double norm_w3 = w3 / sumWeight;
         Double norm_w4 = w4 / sumWeight;
-        Double normal_edge_weight = edge.getLength() * (norm_w1 + norm_w2* edge.getMax_speed_weight()+ norm_w3* Decider.slopeDecider(edge.getSlope()));
+        Double normal_edge_weight = edge.getLength() * (norm_w1 + norm_w3* edge.getMax_speed_weight()+ norm_w2* Decider.slopeDecider(edge.getSlope()));
         Double created_edge_weight = norm_w4 * edge.getTurning_cost();
 
         return normal_edge_weight+ created_edge_weight;
+    }
+    public static  double weightCalculator(double lengtth,double maxspeed,double Slope, Weight weight){
+        Edge edge = new Edge();
+        edge.setLength(lengtth);
+
+        edge.setMax_speed_weight(Decider.maxSpeedDecider(maxspeed));
+        edge.setSlope(Slope);
+        Double w1 = weight.getLength_weight();
+        Double w2 = weight.getSlope_weight();
+        Double w3 = weight.getMax_speed_weight_weight();
+        Double w4 = weight.getTurning_cost_weight();
+        Double sumWeight = w1+w2+w3+w4;
+
+        Double norm_w1 = w1 / sumWeight;
+        Double norm_w2 = w2 / sumWeight;
+        Double norm_w3 = w3 / sumWeight;
+        Double norm_w4 = w4 / sumWeight;
+        if (edge.is_it_created()){
+            return norm_w4 * edge.getTurning_cost();
+        }
+
+        Double normal_edge_weight = edge.getLength() * (norm_w1 + norm_w2*Decider.slopeDecider(edge.getSlope()) + norm_w3* edge.getMax_speed_weight());
+
+        return normal_edge_weight;
     }
     public static  double defaultWeightCalculator(Edge edge){
 
