@@ -6,14 +6,14 @@ import scala.collection.immutable.Stream;
 public class Decider {
     public static Double maxSpeedDecider(Double maxSpeed){
         if (maxSpeed<5){
-            return 0.1;
+            return 0.85;
         }
         else if (maxSpeed<30){
-            return 0.3;
+            return 0.95;
         }else if(maxSpeed<80) {
-            return 0.6;
+            return 1.05;
         }else{
-            return 0.9;
+            return 1.15;
         }
     }
     public static Double nullMaxSpeedDecider(String highwayType){
@@ -34,15 +34,15 @@ public class Decider {
     }
     public static Double turningCostDecider(String turningType){
         Double turningCost;
-        Double Constant = 300.0;
-        Double leftCost = 500.0;
+        Double Constant = 5.0;
+        Double leftCost = 21.0;
 
         switch (turningType) {
             case "Right":
                 turningCost = Constant;
                 break;
             case "Left":
-                turningCost = Constant + leftCost;
+                turningCost = Constant+leftCost;
                 break;
             case "Continous":
                 turningCost = Constant ;
@@ -56,14 +56,11 @@ public class Decider {
             case "Second_Right":
                 turningCost = Constant ;
                 break;
-            case "Non_Restricted":
-                turningCost = Constant;
-                break;
             case "Cross_Right":
                 turningCost = Constant ;
                 break;
             case "Cross_Left":
-                turningCost = Constant + leftCost / 2;
+                turningCost = Constant;
                 break;
             default:
                 turningCost = Constant;
@@ -73,9 +70,22 @@ public class Decider {
         return turningCost;
 
 
+    }
+    public  static Double slopeDecider(Double slope){
 
+        double a = 8.11260291157632;
+        double b = 24.28555137728186;
+        double slope_per = slope *100;
+        double maxValue = a * 15 + b;
 
-
-
+        if (slope_per<-b/a){
+            return 0.8;
+        }
+        else if (slope_per<15) {
+            return  0.8 + (a * slope + b) / (2.5 * maxValue);
+        }
+        else{
+            return 1.2;
+        }
     }
 }

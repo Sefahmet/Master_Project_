@@ -111,26 +111,22 @@ public class GraphCreator {
                     try {
                         maxspeed_weight = Decider.maxSpeedDecider(Double.valueOf(maxSpeed));
                     } catch (Exception e) {
-                        maxspeed_weight = 0.1;
+                        maxspeed_weight = 0.8;
                     }
                 }
 
                 Node u = nodeHashMap.get(u_id);
                 Node v = nodeHashMap.get(v_id);
                 double deltaH = v_elev - u_elev;
-                double sign = Math.signum(deltaH);
-                double slope = Math.pow(deltaH / length, 2);
-                double slope_weight = (100 + sign * slope)/100;
+                double slope = deltaH / length;
 
-                Edge edge = new Edge(false, u_id, v_id, length, slope_weight, maxspeed_weight, 0.0, p1, p2, u, v);
+                Edge edge = new Edge(false, u_id, v_id, length, slope, maxspeed_weight, 0.0, p1, p2, u, v);
 
                 graph.addEdge(u, v, edge);
                 graph.setEdgeWeight(u, v, Calculator.defaultWeightCalculator(edge));
                 deltaH = u_elev - v_elev;
-                sign = Math.signum(deltaH);
-                slope = Math.pow(deltaH / length, 2);
-                slope_weight = (100 + sign * slope)/100;
-                Edge reverseedge = new Edge(false, v_id, u_id, length,slope_weight , maxspeed_weight, 0.0, p2, p1, v, u);
+                slope = deltaH / length;
+                Edge reverseedge = new Edge(false, v_id, u_id, length,slope , maxspeed_weight, 0.0, p2, p1, v, u);
                 graph.addEdge(v, u, reverseedge);
                 graph.setEdgeWeight(v, u, Calculator.defaultWeightCalculator(reverseedge));
             }

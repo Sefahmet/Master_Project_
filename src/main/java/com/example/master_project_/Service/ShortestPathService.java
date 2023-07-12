@@ -42,7 +42,6 @@ public class ShortestPathService {
 
 
             data.setWeight(weight);
-            System.out.println(data.getWeight());
             data = WeightUpdate.graphUpdater(data);
             res = calculateShortestPath(startPoint, endPoint, data);
             return res;

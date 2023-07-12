@@ -4,14 +4,14 @@ import com.example.master_project_.DataHolder.MyDataSingleton;
 import com.example.master_project_.Entity.Edge;
 import com.example.master_project_.Entity.Node;
 import com.example.master_project_.Entity.Weight;
+import org.jgrapht.Graph;
+import org.jgrapht.Graphs;
 import org.locationtech.jts.geom.Coordinate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class Calculator {
 
@@ -29,7 +29,7 @@ public class Calculator {
         Double norm_w2 = w2 / sumWeight;
         Double norm_w3 = w3 / sumWeight;
         Double norm_w4 = w4 / sumWeight;
-        Double normal_edge_weight = edge.getLength() * (norm_w1 + norm_w2* edge.getMax_speed_weight()+ norm_w3* edge.getSlope());
+        Double normal_edge_weight = edge.getLength() * (norm_w1 + norm_w2* edge.getMax_speed_weight()+ norm_w3* Decider.slopeDecider(edge.getSlope()));
         Double created_edge_weight = norm_w4 * edge.getTurning_cost();
 
         return normal_edge_weight+ created_edge_weight;
@@ -40,7 +40,7 @@ public class Calculator {
         Double norm_w2 = 0.25;
         Double norm_w3 = 0.25;
         Double norm_w4 = 0.25;
-        Double normal_edge_weight = edge.getLength() * (norm_w1 + norm_w2* edge.getMax_speed_weight()+ norm_w3* edge.getSlope());
+        Double normal_edge_weight = edge.getLength() * (norm_w1 + norm_w2* edge.getMax_speed_weight()+ norm_w3* Decider.slopeDecider(edge.getSlope()));
         Double created_edge_weight = norm_w4 * edge.getTurning_cost();
 
         return normal_edge_weight+ created_edge_weight;
@@ -148,5 +148,63 @@ public class Calculator {
         double distance1 = Math.sqrt(Math.pow((x - x1), 2) + Math.pow((y - y1), 2));
         double distance2 = Math.sqrt(Math.pow((x - x2), 2) + Math.pow((y - y2), 2));
         return Math.min(distance1, distance2);
+    }
+
+    public static  void  getShortestPath(Graph<Node, Edge> graph, Node source, Node target) throws IOException {
+
+        Map<Node, Double> distances = new HashMap<>();
+        Map<Node, Node> previousNodes = new HashMap<>();
+        Set<Node> visitedNodes = new HashSet<>();
+
+        distances.put(source, 0.0);
+        previousNodes.put(source, null);
+
+        Node currentNode = source;
+
+        while (currentNode != null) {
+            visitedNodes.add(currentNode);
+            List<Edge> outgoingEdges = new ArrayList<>(graph.outgoingEdgesOf(currentNode));
+
+            for (Edge edge : outgoingEdges) {
+
+                List<Node> neighborList = Graphs.neighborListOf(graph, currentNode);
+                Node neighbor = neighborList.get(0);
+
+                if (!visitedNodes.contains(neighbor)) {
+
+                    double edgeWeight = graph.getEdgeWeight(edge);
+                    double newDistance = distances.get(currentNode) + edgeWeight;
+
+                    if (!distances.containsKey(neighbor) || newDistance < distances.get(neighbor)) {
+                        distances.put(neighbor, newDistance);
+                        previousNodes.put(neighbor, currentNode);
+                    }
+                }
+            }
+
+            currentNode = null;
+            double minDistance = Double.MAX_VALUE;
+            for (Node node : distances.keySet()) {
+                if (!visitedNodes.contains(node) && distances.get(node) < minDistance) {
+                    currentNode = node;
+                    minDistance = distances.get(node);
+                }
+            }
+        }
+
+        // En kısa yolun oluşturulması
+        List<Node> shortestPath = new ArrayList<>();
+        currentNode = target;
+
+        while (currentNode != null) {
+            shortestPath.add(0, currentNode);
+            currentNode = previousNodes.get(currentNode);
+        }
+
+        if (shortestPath.size() > 1) {
+            System.out.println("En kısa yol: " + shortestPath);
+        } else {
+            System.out.println("Hedefe ulaşılamadı.");
+        }
     }
 }
